@@ -1,6 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
+#include <termios.h>
+#include <unistd.h>
+
+// real getch() for Linux (no Enter required)
+int getch(void) {
+    struct termios oldattr, newattr;
+    int ch;
+
+    tcgetattr(STDIN_FILENO, &oldattr);         // get current settings
+    newattr = oldattr;
+    newattr.c_lflag &= ~(ICANON | ECHO);       // disable canonical mode & echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &newattr);
+
+    ch = getchar();                            // read single character
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldattr); // restore settings
+    return ch;
+}
 
 //Check if a specified column is valid
 int validCol(int board[9][9], int column) {
